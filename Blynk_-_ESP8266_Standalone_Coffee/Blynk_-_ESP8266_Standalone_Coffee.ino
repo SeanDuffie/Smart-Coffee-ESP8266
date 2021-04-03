@@ -17,7 +17,7 @@
   This example code is in public domain.
 
  *************************************************************
-  This example runs directly on ESP8266 chip.
+  This runs directly on ESP8266 chip.
 
   Note: This requires ESP8266 support package:
     https://github.com/esp8266/Arduino
@@ -26,7 +26,6 @@
   in the Tools -> Board menu!
 
   Change WiFi ssid, pass, and Blynk auth token to run :)
-  Feel free to apply it to any other example. It's simple!
  *************************************************************/
 
 /* Comment this out to disable prints and save space */
@@ -36,34 +35,47 @@
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
 
-// You should get Auth Token in the Blynk App.
-// Go to the Project Settings (nut icon).
-char auth[] = "13m6-h0SPDXDK0H7jLFo6cEyMcXJXmR0"; // Coffee
+char auth[] = "13m6-h0SPDXDK0H7jLFo6cEyMcXJXmR0"; // Coffee Auth Token from Blynk App
 
-// Your WiFi credentials.
-// Set password to "" for open networks.
+// Your WiFi credentials. Set password to "" for open networks.
 char ssid[] = "NorthPoint Wireless";
 char pass[] = "";
 
-void setup()
+int m; // number of minutes to delay
+
+BlynkTimer timer; // Announcing the timer
+
+BLYNK_WRITE(V0) // Checks the value for the delay in the Blynk App
 {
-  // Debug console
-  Serial.begin(115200);delay(1000);
-  Serial.print("\r\nMAC ADDRESS:");
-  Serial.println(WiFi.macAddress());
-  
-  Blynk.begin(auth, ssid, pass);
+  m = (param.asInt()-6); // Coffee takes 6 minutes to Brew, so it is manually adjusted
 }
 
-void loop()
+void setup() // Only runs once at the beginning
+{
+  Serial.begin(115200);delay(1000);// Debug console
+  Serial.print("\r\nMAC ADDRESS:");
+  Serial.println(WiFi.macAddress()); // Acquire MAC Address for first setup and WiFi whitelisting
+  
+  Blynk.begin(auth, ssid, pass);
+  timer.setInterval(1000, pinCheck); // timer will run every second
+}
+
+void loop() // Continuous loop
 { 
   Blynk.run();
-  
-  if (digitalRead(0) == 1) {
-    Serial.println("GP0 was activated.");
+  timer.run();
+}
+
+void pinCheck() // Checks for signals from Blynk, and updates the output pins accordingly
+{
+  if (digitalRead(2) == 1)
+  {
+    Serial.print("App Triggered. Delay is "); Serial.print(m); Serial.println(" minutes");
+    delay(m*60*1000);
+    digitalWrite(0,1);
+    Serial.println("Coffee Maker started");
     delay(1000);
     digitalWrite(0,0);
-    delay(1000);
-    Serial.println("GP0 was deactivated.");
+    digitalWrite(2,0);
   }
 }
