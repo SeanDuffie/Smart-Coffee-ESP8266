@@ -41,13 +41,20 @@ char auth[] = "13m6-h0SPDXDK0H7jLFo6cEyMcXJXmR0"; // Coffee Auth Token from Blyn
 char ssid[] = "NorthPoint Wireless";
 char pass[] = "";
 
+int trigger; // Delay active or not
 int m; // number of minutes to delay
+int s; // number of seconds remaining
 
 BlynkTimer timer; // Announcing the timer
 
 BLYNK_WRITE(V0) // Checks the value for the delay in the Blynk App
 {
-  m = (param.asInt()-6); // Coffee takes 6 minutes to Brew, so it is manually adjusted
+  m = (param.asInt()); // Coffee takes 6 minutes to Brew, so it is manually adjusted
+}
+
+BLYNK_WRITE(V1) // Checks to see if the delay is started in the Blynk App
+{
+  trigger = (param.asInt());
 }
 
 void setup() // Only runs once at the beginning
@@ -68,14 +75,36 @@ void loop() // Continuous loop
 
 void pinCheck() // Checks for signals from Blynk, and updates the output pins accordingly
 {
-  if (digitalRead(2) == 1)
+  s = -1;
+  //Serial.print("Total minutes = "); Serial.println(m); Serial.println();
+  
+  if (trigger == 1)
   {
-    Serial.print("App Triggered. Delay is "); Serial.print(m); Serial.println(" minutes");
-    delay(m*60*1000);
-    digitalWrite(0,1);
-    Serial.println("Coffee Maker started");
-    delay(1000);
-    digitalWrite(0,0);
-    digitalWrite(2,0);
+    trigger = 0;
+    Blynk.virtualWrite(V1, trigger);
+    Blynk.virtualWrite(m, V0);
+    s = m * 60;
+    Serial.print("App Triggered. Delay is "); Serial.print(m * 60); Serial.println(" seconds");
+  }
+  
+  while (s > -1)
+  {
+    Blynk.run();
+    //Serial.print("    Seconds left = "); Serial.print(s); Serial.print("; V1 = "); Serial.print(trigger); Serial.print("; V0 = "); Serial.println(m);
+    
+    if (s > 0)
+    {
+      delay(1000);
+      s -= 1;
+    }
+    
+    else if (s == 0)
+    {
+        digitalWrite(0,1);
+        Serial.println("Coffee Maker started");
+        delay(1000);
+        digitalWrite(0,0);
+        s -= 1;
+    }
   }
 }
