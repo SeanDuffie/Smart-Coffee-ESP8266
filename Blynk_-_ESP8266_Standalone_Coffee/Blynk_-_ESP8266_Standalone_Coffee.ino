@@ -38,8 +38,8 @@
 char auth[] = "13m6-h0SPDXDK0H7jLFo6cEyMcXJXmR0"; // Coffee Auth Token from Blynk App
 
 // Your WiFi credentials. Set password to "" for open networks.
-char ssid[] = "NorthPoint Wireless";
-char pass[] = "";
+char ssid[] = "Turkish Delights";
+char pass[] = "Wemissgary!123";
 
 int trigger; // Delay active or not
 int m; // number of minutes to delay
